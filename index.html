@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Surprise ✨💖</title>
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-pink: #fff0f5; --pastel-pink: #ffd1dc; --accent-pink: #ff6b8b;
+            --dark-pink: #d84374; --card-bg: rgba(255, 255, 255, 0.95);
+            --text-color: #5a3e47; --shadow: 0 10px 30px rgba(255, 182, 193, 0.4); --radius: 24px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body { font-family: 'Almarai', sans-serif; background-color: var(--bg-pink); color: var(--text-color); min-height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+
+        #roseCanvas, #transitionCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        #roseCanvas { z-index: 1; }
+        #transitionCanvas { z-index: 9999; display: none; background: rgba(255, 240, 245, 0.8); }
+
+        .container { width: 90%; max-width: 440px; margin: 20px auto; position: relative; z-index: 10; }
+        .section-card { background: var(--card-bg); backdrop-filter: blur(10px); border-radius: var(--radius); padding: 30px 20px; box-shadow: var(--shadow); text-align: center; display: none; opacity: 0; transform: scale(0.95); transition: opacity 0.4s ease, transform 0.4s ease; }
+        .section-card.active { display: block; opacity: 1; transform: scale(1); }
+        h2 { color: var(--dark-pink); font-size: 1.35rem; margin-bottom: 20px; font-weight: 700; }
+        .btn-primary { background: linear-gradient(135deg, #ff758c, #ff7eb3); color: white; border: none; padding: 14px 28px; font-size: 1.05rem; font-weight: 700; border-radius: 50px; cursor: pointer; margin-top: 20px; width: 100%; }
+        
+        .love-slider { -webkit-appearance: none; width: 100%; height: 12px; border-radius: 10px; background: #ffe3e8; margin-top: 15px; }
+        .love-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; border-radius: 50%; background: var(--accent-pink); cursor: pointer; }
+        .love-val { font-size: 2.5rem; font-weight: 800; color: var(--dark-pink); display: block; }
+        .gif-display { width: 140px; height: 140px; margin: 0 auto 10px auto; display: block; object-fit: contain; mix-blend-mode: multiply; }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 1000; display: none; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-card { background: white; width: 85%; max-width: 340px; border-radius: 24px; padding: 25px; text-align: center; }
+        .gift-bouquet-img { width: 100%; max-width: 250px; border-radius: 16px; margin: 15px 0; }
+        .letter-paper { background: #fffdf9; border-radius: 16px; padding: 20px; border: 1px solid #ebdccb; text-align: right; line-height: 1.8; margin: 15px 0; }
+    </style>
+</head>
+<body>
+
+    <canvas id="roseCanvas"></canvas>
+    <canvas id="transitionCanvas"></canvas>
+
+    <div class="container">
+        <div id="part1" class="section-card active">
+            <h2>قولي كلمة السر ي سكر 🔐</h2>
+            <div id="pinAlert" class="alert-msg" style="margin-bottom:10px;"></div>
+            <button class="btn-primary" onclick="startTransition(2)">الدخول للمفاجأة 💖</button>
+        </div>
+
+        <div id="part2" class="section-card">
+            <h2>بتحبيني قد ايه؟ 💖</h2>
+            <img id="gifDisplay" class="gif-display" src="1.gif">
+            <span class="love-val" id="loveValDisplay">0%</span>
+            <input type="range" min="0" max="100" value="0" class="love-slider" id="loveRange" oninput="updateLoveTest(this.value)">
+            <div id="nextBtnPart2" style="display: none;"><button class="btn-primary" onclick="startTransition(3)">التالي ➡️</button></div>
+        </div>
+
+        <div id="part3" class="section-card">
+            <h2>افتحي هديتك يعمري❤ 🎁</h2>
+            <button class="btn-primary" onclick="startTransition(4)">الرسالة الأخيرة 🎈</button>
+        </div>
+
+        <div id="part4" class="section-card">
+            <h2>كل سنة وأنتي طيبة يا قلبي 🎂</h2>
+            <div class="letter-paper">بحبك يا أغلى ما في حياتي...</div>
+        </div>
+    </div>
+
+    <script>
+        // الخلفية الأساسية
+        const roseCanvas = document.getElementById('roseCanvas');
+        const roseCtx = roseCanvas.getContext('2d');
+        let w, h;
+        function resize() { w = roseCanvas.width = window.innerWidth; h = roseCanvas.height = window.innerHeight; }
+        window.onresize = resize; resize();
+        const petals = Array.from({length: 40}, () => ({x: Math.random()*w, y: Math.random()*h, size: 20, speedY: 1}));
+        function animate() {
+            roseCtx.clearRect(0, 0, w, h);
+            petals.forEach(p => { roseCtx.font = "20px serif"; roseCtx.fillText("🌸", p.x, p.y); p.y += p.speedY; if(p.y > h) p.y = -20; });
+            requestAnimationFrame(animate);
+        } animate();
+
+        // منطق الانتقال الجديد (الورد اللي بيملا الشاشة)
+        const transCanvas = document.getElementById('transitionCanvas');
+        const transCtx = transCanvas.getContext('2d');
+        
+        function startTransition(nextPart) {
+            transCanvas.style.display = 'block';
+            let particles = [];
+            // إنشاء 300 وردة
+            for(let i=0; i<300; i++) particles.push({x: Math.random()*w, y: Math.random()*h, speed: Math.random()*5 + 5});
+            
+            function draw() {
+                transCtx.clearRect(0, 0, w, h);
+                particles.forEach(p => {
+                    transCtx.font = "30px serif";
+                    transCtx.fillText("🌸", p.x, p.y);
+                    p.y += p.speed;
+                });
+                
+                if(particles[0].y < h) requestAnimationFrame(draw);
+                else {
+                    transCanvas.style.display = 'none';
+                    document.querySelectorAll('.section-card').forEach(c => c.classList.remove('active'));
+                    document.getElementById('part'+nextPart).classList.add('active');
+                }
+            }
+            draw();
+        }
+
+        function updateLoveTest(v) {
+            const display = document.getElementById('loveValDisplay');
+            const gifDisplay = document.getElementById('gifDisplay');
+            const nextBtn = document.getElementById('nextBtnPart2');
+            display.textContent = v + "%";
+            if(v < 50) gifDisplay.src = "1.gif";
+            else if(v < 90) gifDisplay.src = "2.gif";
+            else { gifDisplay.src = "3.gif"; nextBtn.style.display = "block"; }
+        }
+    </script>
+</body>
+</html>
